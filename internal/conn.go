@@ -101,6 +101,7 @@ func NewConn(conn io.ReadWriteCloser, authenticator Authenticator, acceptedProto
 	}
 
 	c.pool = clientProtocol.Packets(true)
+	addPackets(c.pool)
 
 	c.runtimeID = uint64(crc32.ChecksumIEEE([]byte(c.identityData.XUID)))
 	c.uniqueID = int64(c.runtimeID)
