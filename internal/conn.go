@@ -50,7 +50,7 @@ type Conn struct {
 	mu sync.Mutex
 }
 
-func NewConn(conn io.ReadWriteCloser, authenticator Authenticator, pool packet.Pool) (*Conn, error) {
+func NewConn(conn io.ReadWriteCloser, authenticator Authenticator, acceptedProtocols []minecraft.Protocol) (*Conn, error) {
 	c := &Conn{
 		conn: conn,
 
@@ -58,7 +58,7 @@ func NewConn(conn io.ReadWriteCloser, authenticator Authenticator, pool packet.P
 		writer: proto.NewWriter(conn),
 
 		header: &packet.Header{},
-		pool:   pool,
+		pool:   packet.NewClientPool(),
 
 		ch: make(chan struct{}),
 	}
@@ -91,6 +91,16 @@ func NewConn(conn io.ReadWriteCloser, authenticator Authenticator, pool packet.P
 		_ = c.Close()
 		return nil, errors.New("authentication failed")
 	}
+
+	clientProtocol := minecraft.Protocol(minecraft.DefaultProtocol)
+	for _, p := range acceptedProtocols {
+		if connectionRequest.Protocol == p.ID() {
+			clientProtocol = p
+			break
+		}
+	}
+
+	c.pool = clientProtocol.Packets(true)
 
 	c.runtimeID = uint64(crc32.ChecksumIEEE([]byte(c.identityData.XUID)))
 	c.uniqueID = int64(c.runtimeID)

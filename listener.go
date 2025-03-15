@@ -5,15 +5,17 @@ import (
 	tr "github.com/cooldogedev/spectrum-df/transport"
 	"github.com/cooldogedev/spectrum-df/util"
 	"github.com/df-mc/dragonfly/server/session"
+	"github.com/sandertv/gophertunnel/minecraft"
 	"github.com/sandertv/gophertunnel/minecraft/protocol/packet"
 )
 
 type Listener struct {
-	authentication util.Authentication
-	transport      tr.Transport
+	authentication    util.Authentication
+	transport         tr.Transport
+	acceptedProtocols []minecraft.Protocol
 }
 
-func NewListener(addr string, authentication util.Authentication, transport tr.Transport) (*Listener, error) {
+func NewListener(addr string, authentication util.Authentication, transport tr.Transport, acceptedProtocols ...minecraft.Protocol) (*Listener, error) {
 	if transport == nil {
 		transport = tr.NewSpectral()
 	}
@@ -22,8 +24,9 @@ func NewListener(addr string, authentication util.Authentication, transport tr.T
 		return nil, err
 	}
 	return &Listener{
-		authentication: authentication,
-		transport:      transport,
+		authentication:    authentication,
+		transport:         transport,
+		acceptedProtocols: acceptedProtocols,
 	}, nil
 }
 
@@ -38,7 +41,7 @@ func (l *Listener) Accept() (session.Conn, error) {
 	if l.authentication != nil {
 		authenticator = l.authentication.Authenticate
 	}
-	return internal.NewConn(c, authenticator, packet.NewClientPool())
+	return internal.NewConn(c, authenticator, l.acceptedProtocols)
 }
 
 // Disconnect ...

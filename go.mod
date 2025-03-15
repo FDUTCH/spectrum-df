@@ -38,3 +38,5 @@ require (
 	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect
 )
+
+replace github.com/cooldogedev/spectrum v0.0.36 => github.com/oomph-ac/spectrum v0.0.0-20250312202104-1145dc644dfd
